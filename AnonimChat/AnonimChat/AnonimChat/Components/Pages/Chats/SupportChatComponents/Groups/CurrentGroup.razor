@@ -1,0 +1,13 @@
+﻿
+
+<li class="list-group-item w-100 @(IsSelected ? "active" : "")"
+    @onclick="@(_ => OnGroupClick.InvokeAsync(Group))">@(Group.Name)</li>
+
+@code {
+    [Parameter]
+    public bool IsSelected { get; set; }
+    [Parameter]
+    public required Group Group { get; set; }
+    [Parameter]
+    public EventCallback<Group> OnGroupClick { get; set; }
+}

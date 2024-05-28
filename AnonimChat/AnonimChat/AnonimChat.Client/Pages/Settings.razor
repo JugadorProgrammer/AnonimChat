@@ -1,0 +1,15 @@
+﻿@page "/settings"
+@rendermode InteractiveWebAssembly
+@inject IJSRuntime JSRuntime
+
+<h3>Пример вызова JavaScript alert из Blazor компонента</h3>
+
+
+
+@code {
+    
+    private async Task ShowAlert(string message)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", message);
+    }
+}

@@ -1,0 +1,90 @@
+﻿@page "/allgroup/{GroupId:int}"
+@rendermode RenderMode.InteractiveServer
+
+@using AnonimChat.Components.Pages.Chats.SupportChatComponents.Groups
+@using AnonimChat.Components.Pages.Chats.SupportChatComponents.MessageSender
+@using AnonimChat.Components.Pages.Chats.SupportChatComponents.Messages
+@using AnonimChat.Components.Pages.Chats.SupportChatComponents.GroupHeader
+
+@inject NavigationManager _navManager
+@inject IDataBaseService _dataBaseService
+@inject AuthenticationStateProvider _authenticationStateProvider
+
+<div class="row h-100">
+
+    <div class="col-8 container">
+        @if (SelectedGroup is not null)
+        {
+            <Header SelectedGroup="@SelectedGroup" />
+            <div class="chat-container">
+                @foreach (var item in SelectedGroupMessages ?? Array.Empty<Message>())
+                {
+                    if (item.Author?.Id == User?.Id)
+                    {
+                        <IncomingMessage Message="@item" />
+                    }
+                    else
+                    {
+                        <OutgoingMessage Message="@item" />
+                    }
+                }
+            </div>
+            <Sender SendMessage="SendMessage" />
+        }
+    </div>
+
+    <div class="col-4">
+        <CascadingValue Value="SelectedGroup">
+            <GroupList Groups="Groups" SelectedGroupChange="SelectedGroupChange" />
+        </CascadingValue>
+    </div>
+</div>
+
+
+
+@code {
+    [Parameter]
+    public int GroupId { get; set; }
+
+    private User? User { get; set; }
+    private Group? SelectedGroup { get; set; }
+    private IEnumerable<Group>? Groups { get; set; }
+    private IEnumerable<Message>? SelectedGroupMessages { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var Id = 1; //await GetUserId();
+        User = await _dataBaseService.GetUserAsync(Id);
+        Groups = await _dataBaseService.GetGroupsAsync(GroupId);
+    }
+
+    private async Task<int> GetUserId()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        return int.Parse(user.FindFirst(_ => _.Type == nameof(User.Id))!.Value);
+    }
+
+    private async Task SelectedGroupChange(Group newSelectedGroup)
+    {
+        SelectedGroup = newSelectedGroup;
+        SelectedGroupMessages = await _dataBaseService.GetAllGroupMessagesAsync(newSelectedGroup.Id);
+    }
+
+    private async Task SendMessage(string messageText)
+    {
+        if (SelectedGroup is not null)
+        {
+            var message = new Message()
+                {
+                    Author = User,
+                    Group = SelectedGroup,
+                    QuotedMessage = null,//TODO:доделать
+                    ImagePath = null,
+                    Text = messageText,
+                    FirstCtreateTime = DateTime.Now
+                };
+            await _dataBaseService.CreateMessageAsync(message);
+        }
+    }
+}

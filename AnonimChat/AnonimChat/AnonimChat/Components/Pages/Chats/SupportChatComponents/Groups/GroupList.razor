@@ -1,0 +1,22 @@
+﻿
+@if (Groups is not null)
+{
+    <ul class="list-group list-group-flush h-100 w-100 ">
+        @foreach (var group in Groups)
+        {
+            <CurrentGroup Group="group"
+                          OnGroupClick="SelectedGroupChange"
+                          IsSelected="SelectedGroup?.Id == group.Id" />
+        }
+    </ul>
+}
+
+
+@code {
+    [CascadingParameter]
+    public Group? SelectedGroup { get; set; }
+    [Parameter]
+    public IEnumerable<Group>? Groups { get; set; }
+    [Parameter]
+    public EventCallback<Group> SelectedGroupChange { get; set; }
+}
